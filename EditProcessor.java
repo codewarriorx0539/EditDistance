@@ -1,19 +1,30 @@
-
 package editdistance;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
+// This is a classic dynamic programing problem. The premise is to find the relative closeness
+// of two strings. If the strings are the same the acumulated distance is 0. Insertion, deletion, and 
+// substitution all have costs associated with each action. 
+// http://en.wikipedia.org/wiki/Levenshtein_distance
+
+
 public class EditProcessor implements Runnable 
 {
-    // Normally floats but I scaled by x 10 and using ints... less space and faster
+    // Below are the costs of each action. Normally people use 
+    // floats but I scaled by x10 and using integers
+    // this requires less space and is faster.
+    
     static int INSERT_COST = 10;        // Move Right 1.0
     static int DELETION_COST = 12;      // Move Down 1.2
     static int SUBSTITUTION_COST = 15;  // Move Diagonal 1.5
     
+    // To optimize space and speed I set the maximum size of the string to create a N x N grid
+    // I reuse the grid for subsequent comparisons to reduce allocation costs.
     static int MAX_COMPARE_LEN = 25;
 
     int table[][];
     
+    // A queue of strings to calculate the distance from our master string.
     ArrayBlockingQueue<String> q;
     
     String masterString;
@@ -22,6 +33,8 @@ public class EditProcessor implements Runnable
     String compareString;
     int compareStringLen;
     
+    // Create the grid and calculate the first row and the first column to pump prime the 
+    // intial valuses
     public EditProcessor(ArrayBlockingQueue<String> q, String masterString)
     {
         this.q = q;
@@ -41,6 +54,8 @@ public class EditProcessor implements Runnable
         }
     }
     
+    
+    // Print the grid 
     private void printGrid()
     {
         for(int i = 0; i < masterStringLen + 1; i++)
@@ -53,6 +68,7 @@ public class EditProcessor implements Runnable
         }    
     }
     
+    // Take a string from the Queue and compute the distance between the two strings.
     @Override
     public void run()
     {
